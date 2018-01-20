@@ -6,7 +6,7 @@ from random import randint
 import string
 import csv
 
-
+commandChar = '*'
 
 voiceServer = ''
 
@@ -139,8 +139,9 @@ def get_instruction(message):
 	global ban_order
 	received = message.content
 	sender = message.author
-	if received == 'help':
+	if 'help' in received:
 		return HELP
+		
 	if(received[0]=='-'):
 		for i in range(0,7):
 			if received.lower() == '-' + maps[i].lower():
@@ -165,7 +166,7 @@ def get_instruction(message):
 				else:
 					return '```You are not the captain of team ' + captainnames[ban_order[ban_number]] + ', ' + sender.name + '```'
 				
-	if received == 'reset':
+	if  'reset' in received.lower():
 		for i in range(0,7):
 			bans[i] = 0
 		for i in range(0,4):
@@ -176,10 +177,9 @@ def get_instruction(message):
 		captainnames = [' ', ' ']
 		popflash = ''
 		ban_number = 0
-		return ''
+		return '```PUGBot has reset```'
 		
-		
-	if received.lower() == 'captains':
+	if  'captains' in received.lower():
 		for i in range(0,4):
 			teamA[i] = ' '
 			teamB[i] = ' '
@@ -243,7 +243,7 @@ def get_instruction(message):
 			return '```Fuck off, you are not the captain of team ' + captainnames[pick_order[pick_number]] + ', ' + sender.name + '.```'
 				
 				
-	if 'https://popflash.site/scrim' in received.lower():# and len(received) < 50:
+	if 'https://popflash.site/scrim' in received.lower():
 		popflash = received
 		return '```popflash set```'
 		
@@ -261,8 +261,13 @@ def get_instruction(message):
 if len(sys.argv) > 1:		
 	print('Loading config ' + sys.argv[1])	
 	loadConfig(sys.argv[1])		
-else: 
+else:
+	print('No config argument - loading from config.csv') 
 	loadConfig('config.csv')
+
+if len(sys.argv) > 2:
+	commandChar = str(sys.argv[2])[0]
+	print('commandChar is ' + commandChar)
 		
 client = discord.Client()
 
@@ -277,11 +282,14 @@ async def on_ready():
 	voiceChannel = client.get_channel(voiceServer)
 	print('getting channel ' + voiceServer)
 	voiceChannelName = voiceChannel.name
-	HELP = '```This bot is currently configured for ' + serverName + '.\n\nTo begin you must select captains. \nIf multiple people are in the ' + voiceChannelName + ' voice channel, then type \ncaptains\nto select randomly from the people in the channel.\n\nTo manually set the captains, use \n-CaptainA [discord name] \nand\n-CaptainB [discord name]\nCaptains must use their discord name.\n\nTo pick players type \n\'pick [name]\'\nThis name doesn\'t have to be their discord name.\n\nTo veto maps type one of \n\'-[map]\'\n\'ban [map]\'\n\'veto [map]\'\n\nYou must use the map names as shown in remaining maps.\n\nTo generate a popflash type \n\'popgen\'\n\nTo reset type \n\'reset\'```'		
+	commandPrefixString = ''
+	if commandChar != '*':
+		commandPrefixString = 'It uses the command prefix ' + commandChar + ' which should be prepended to any command.\n\n'
+	HELP = '```This bot is currently configured for ' + serverName + '.\n\n' + commandPrefixString + 'To begin you must select captains. \nIf multiple people are in the ' + voiceChannelName + ' voice channel, then type \ncaptains\nto select randomly from the people in the channel.\n\nTo manually set the captains, use \n-CaptainA [discord name] \nand\n-CaptainB [discord name]\nCaptains must use their discord name.\n\nTo pick players type \n\'pick [name]\'\nThis name doesn\'t have to be their discord name.\n\nTo veto maps type one of \n\'-[map]\'\n\'ban [map]\'\n\'veto [map]\'\n\nYou must use the map names as shown in remaining maps.\n\nTo generate a popflash type \n\'popgen\'\n\nTo reset type \n\'reset\'```'		
 
 @client.event
 async def on_message(message):
-	if (message.channel.id in vetoID) and (message.author != client.user):# and (message.author.name == 'tau' or message.author.name == 'Ziks' or message.author.name == captainnames[0] or message.author.name == captainnames[1]):
+	if (message.channel.id in vetoID) and (message.author != client.user) and (message.content[0] == commandChar or commandChar == '*'):
 		if 'exit' in message.content.lower() and ownerID in message.author.id:
 			await client.send_message(message.channel, 'Goodbye :wave:')
 			client.logout()
