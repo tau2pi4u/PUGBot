@@ -2,6 +2,7 @@
 Bot for organising CSGO 10 mans in a discord
 Create a csv with the headings:
 owner,bans_channel,voice_channel,botID,serverName
+
 [owner unique discord ID],[text channel unique ID],[voice channel unique ID],[bot user secret],[Name of server for which it is configured]
 
 run using the command
